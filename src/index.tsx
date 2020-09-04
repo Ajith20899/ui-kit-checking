@@ -1,13 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
-import { TextEditor } from './App';
+// import { TextEditor } from './App';
+import { VideoPlayer } from "./video/VideoPlayer";
 import * as serviceWorker from './serviceWorker';
 
 
 ReactDOM.render(
   <React.StrictMode>
-    <TextEditor />
+    {/* <TextEditor boxed={true} /> */}
+    <VideoPlayer
+      videoSrc={"https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4#t=2"}
+      videoType={"video/mp4"}
+    />
   </React.StrictMode>,
   document.getElementById('root')
 );

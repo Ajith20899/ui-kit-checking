@@ -1,18 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactQuill from 'react-quill';
-import "./App.css";
+import styled from "styled-components";
+import "react-quill/dist/quill.snow.css";
+import { textEditorCss } from "./css";
 
-// type TextEditorT = {
-//   onEditorChange: (t: string, h: string) => void;
-//   boxTextEditor?: boolean;
-// };
+type TextEditorT = {
+  onEditorChange?: (t: string, h: string) => void;
+  boxed: boolean;
+  fontSize?: string;
+  fontColor?: string;
+};
 
-export const TextEditor = () => {
-  // const { onEditorChange, boxTextEditor } = props;
+export const TextEditor = (props: TextEditorT) => {
+  const { onEditorChange, boxed, fontSize, fontColor } = props;
 
   const [text, setText] = useState("");
   const reactQuillRef = useRef() as any;
-  const boxTextEditor = false;
 
   useEffect(() => {
     let quill = reactQuillRef && reactQuillRef.current;
@@ -20,7 +23,6 @@ export const TextEditor = () => {
     if (quill) {
       const editor = quill.getEditor();
       const unprivilegedEditor = quill.makeUnprivilegedEditor(editor);
-      console.log(unprivilegedEditor);
       // onEditorChange(unprivilegedEditor.getText(), text);
     }
   }, [text]);
@@ -30,38 +32,41 @@ export const TextEditor = () => {
   }
 
   return (
-    <ReactQuill
-      ref={reactQuillRef}
-      value={text}
-      onChange={handleChange}
-      theme={"snow"}
-      id={boxTextEditor ? "boxTextEditor" : ""}
-      modules={TextEditor.modules}
-      formats={TextEditor.formats}
-    />
+    <TextEditorWrapper fontSize={fontSize} fontColor={fontColor}>
+      <ReactQuill
+        ref={reactQuillRef}
+        value={text}
+        onChange={handleChange}
+        theme={"snow"}
+        id={boxed ? "boxTextEditor" : ""}
+        modules={TextEditor.modules}
+        formats={TextEditor.formats}
+      />
+    </TextEditorWrapper>
   );
 };
+
+//styles
+
+const TextEditorWrapper = styled.div`
+    ${textEditorCss};
+`;
 
 TextEditor.modules = {
   toolbar: [
     [{ 'header': [6, 5, 4, 3, 2, 1, false] }],
     ['bold', 'italic', 'underline', 'strike', 'code-block'],
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }, { 'indent': '-1' }, { 'indent': '+1' }],
-    [{ 'color': [] }, { 'background': [] }, 'clean'],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    [{ 'indent': '-1' }, { 'indent': '+1' }],
   ],
   clipboard: {
     matchVisual: false,
   }
 }
-/*
- * Quill TextEditor formats
- * See https://quilljs.com/docs/formats/
- */
+
 TextEditor.formats = [
   'header',
   'bold', 'italic', 'underline', 'strike',
   'code-block',
   'list', 'indent',
-  'color', 'background',
-  'clean'
 ]
