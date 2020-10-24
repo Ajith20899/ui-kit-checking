@@ -12,7 +12,6 @@ export function VolumeProgress(props: VolumeProgressT) {
     const { isVolumeMuted } = props;
 
     // useEffect
-
     // volume up position setup
     useEffect(() => {
         let circle = document.getElementById("circle");
@@ -20,64 +19,43 @@ export function VolumeProgress(props: VolumeProgressT) {
             if (isVolumeMuted) {
                 circle.style.left = "0px";
             }
-            else circle.style.left = "calc(100% - 14px)";
+            else circle.style.left = "calc(100% - 7px)";
         }
     }, [isVolumeMuted]);
 
     // mousedown and swipe
     useEffect(() => {
+        let video = (document.getElementById("video_player") as HTMLVideoElement);
         let volumeProgress = document.getElementById("volume_progress");
         let circle = document.getElementById("circle");
-
-        let pos = { top: 0, left: 0, x: 0, y: 0 };
+        let volumeFiller = document.getElementById("volume_filler");
 
         if (!volumeProgress) return;
 
-        const mouseDownHandler = function (e: any) {
-            console.log("e", e);
-            if (circle) {
-                if (isVolumeMuted) {
-                    circle.style.left = "0px";
-                }
-                else circle.style.left = "calc(100% - 14px)";
-            }
+        function volumeCalculation(e: any) {
             if (volumeProgress) {
-                volumeProgress.style.cursor = "grabbing";
-                volumeProgress.style.userSelect = "none";
-
-                pos = {
-                    left: volumeProgress.scrollLeft,
-                    top: volumeProgress.scrollTop,
-                    // Get the current mouse position
-                    x: e.clientX,
-                    y: e.clientY,
-                };
+                let left = e.clientX - volumeProgress.getBoundingClientRect().left;
+                let volumeCount = left / (volumeProgress.clientWidth - 14);
+                if (circle && volumeFiller && (left >= 0 && left <= volumeProgress.clientWidth - 14)) {
+                    circle.style.left = left + "px";
+                    volumeFiller.style.width = left + "px";
+                    video.volume = volumeCount;
+                }
             }
+        }
+
+        const mouseDownHandler = function (e: any) {
+            volumeCalculation(e);
+
             volumeProgress?.addEventListener("mousemove", mouseMoveHandler);
             volumeProgress?.addEventListener("mouseup", mouseUpHandler);
         };
 
-        const mouseMoveHandler = function (e: {
-            clientX: number;
-            clientY: number;
-        }) {
-            // How far the mouse has been moved
-            const dx = e.clientX - pos.x;
-            const dy = e.clientY - pos.y;
-
-            // Scroll the element
-            if (volumeProgress) {
-                volumeProgress.scrollTop = pos.top - dy;
-                volumeProgress.scrollLeft = pos.left - dx;
-            }
+        const mouseMoveHandler = function (e: any) {
+            volumeCalculation(e);
         };
 
         const mouseUpHandler = function () {
-            if (volumeProgress) {
-                volumeProgress.style.cursor = "grab";
-                volumeProgress.style.removeProperty("user-select");
-            }
-
             volumeProgress?.removeEventListener("mousemove", mouseMoveHandler);
             volumeProgress?.removeEventListener("mouseup", mouseUpHandler);
         };
@@ -89,27 +67,34 @@ export function VolumeProgress(props: VolumeProgressT) {
     }, []);
 
     return (
-        <VolumeProgressWrapper isVolumeMuted={isVolumeMuted} id={"volume_progress"}>
+        <VolumeProgressWrapper id={"volume_progress"}>
+            <VolumeFiller isVolumeMuted={isVolumeMuted} id={"volume_filler"}></VolumeFiller>
             <Circle id={"circle"}></Circle>
         </VolumeProgressWrapper>
     );
 };
 
 // styles
-const VolumeProgressWrapper = styled.div<{ isVolumeMuted: boolean }>`
+const VolumeProgressWrapper = styled.div`
     position: relative;
     display: inline-block;
     width: 75%;
     height: 4px;
     border-radius: 8px;
-    background-color: ${p => p.isVolumeMuted ? "#6d6d6d" : "#fff"};
+    background-color: #6d6d6d;
     top: -4.5px;
     left: 18px;
+    cursor: pointer;
     transition: .5s all;
-
-    &:before {
-        content: "";
-    }
+`;
+const VolumeFiller = styled.span<{ isVolumeMuted: boolean }>`
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    border-radius: 10px;
+    width: ${p => p.isVolumeMuted ? "0 !important" : "100%"};
+    background-color: white;
 `;
 const Circle = styled.span`
     width: 14px;
@@ -119,5 +104,4 @@ const Circle = styled.span`
     position: absolute;
     left: calc(100% - 14px);
     top: -5px;
-    transition: .5s all;
 `;

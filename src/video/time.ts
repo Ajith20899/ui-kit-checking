@@ -1,7 +1,12 @@
 export function getSeconds(time: number): string {
     let seconds = time.toString().split(".");
-    let num = parseInt(seconds[1]) % 60; 
+    let num = Math.ceil(parseInt(seconds[1]) % 60); 
     return (num < 10 ? "0" : "") + num;
+}
+
+export function getMinutesToSeconds(time: number): string {
+     let num = Math.floor((time * 60) % 60);
+     return (num < 10 ? "0" : "") + num; 
 }
 
 export function getMinutes(time: number): string {
@@ -15,10 +20,9 @@ export function getHours(time: number): string {
 }
 
 export function hoursTimeFormat(time: number): string {
-    console.log("onm", getHours(time).charAt(0));
   let currentTime = getHours(time).charAt(0) !== "0" ? 
-  `${getHours(time)}:${getMinutes(time)}:${getSeconds(time)}` :
-   `${getMinutes(time)}:${getSeconds(time)}`
+  `${getHours(time)}:${getMinutes(time)}:${getMinutesToSeconds(time)}` :
+   `${getMinutes(time)}:${getMinutesToSeconds(time)}`
   ;
   return currentTime;
 } 
@@ -27,11 +31,11 @@ export function timeFormat(time: number) {
     var currentHours = Math.floor(time / 3600);
     var currentMinutes = Math.floor(time / 60);
     var currentSeconds = Math.floor(time % 60);
+    var hours = (currentHours < 10 ? "0" : "") + currentHours;
     var minutes = (currentMinutes < 10 ? "0" : "") + currentMinutes;
     var seconds = (currentSeconds < 10 ? "0" : "") + currentSeconds;
-    console.log("currentMinutes", currentMinutes, currentSeconds, minutes, seconds);
     
-    return currentHours === 0
-      ? `${minutes}:${seconds}`
-      : `${currentHours}:${minutes}:${seconds}`;
+    return currentHours >= 1
+      ? `${hours}:${minutes}:${seconds}`
+      : `${minutes}:${seconds}`;
 }

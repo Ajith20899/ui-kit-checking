@@ -1,46 +1,84 @@
-import React from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import styled from "styled-components";
 import playButton from "../assets/play-button.svg";
 import pauseButton from "../assets/pause.svg";
 import nextButton from "../assets/next-button.svg";
 import mute from "../assets/mute.svg";
 import speaker from "../assets/speaker.svg";
+import fullScreen from "../assets/full-screen.svg";
 import { ProgressBar } from "./ProgressBar";
-import { timeFormat, hoursTimeFormat } from "./time";
+import { timeFormat } from "./time";
 import { VolumeProgress } from "./VolumeProgress";
 
 type VideoFooterT = {
-    getCurrentTime: number;
     videoFullDuration: number;
     isPlay: boolean;
+    setIsplay: Dispatch<SetStateAction<boolean>>;
     playOrPause: () => void;
-    isVolumeMuted: boolean;
-    volumeMute: () => void;
+    fullScreenHandler: () => void;
 };
 
 export function VideoFooter(props: VideoFooterT) {
     // props
     const {
-        getCurrentTime,
         videoFullDuration,
         isPlay,
+        setIsplay,
         playOrPause,
-        isVolumeMuted,
-        volumeMute
+        fullScreenHandler
     } = props;
 
+    // local state
+    const [getCurrentTime, setGetCurrentTime] = useState(0);
+    const [isVolumeMuted, setIsVolumeMuted] = useState(false);
+
+    //  useEffect
+
+    // get current time
+    useEffect(() => {
+        let video = (document.getElementById("video_player") as HTMLVideoElement);
+
+        function setTimeHandler() {
+            if (video.paused) return;
+            if (video) {
+                setGetCurrentTime(video.currentTime);
+            }
+        }
+
+        video?.addEventListener("timeupdate", setTimeHandler);
+        return () => video?.removeEventListener("timeupdate", setTimeHandler);
+    }, []);
+
+    // volume up and mute
+    function volumeMute() {
+        let video = (document.getElementById("video_player") as HTMLVideoElement);
+        setIsVolumeMuted(!isVolumeMuted);
+
+        if (video) {
+            if (isVolumeMuted) {
+                video.volume = 0;
+            } else video.volume = 1;
+        }
+    };
+
+    // onclick prevent 
+    function onClickPreventHandler(e: any) {
+        e.stopPropagation();
+    };
+
     return (
-        <VideoFooterWrapper>
+        <VideoFooterWrapper onClick={onClickPreventHandler} id={"video_footer_wrapper"}>
             <VideoPlayingTime
                 id={"video_current_time"}>
-                {videoFullDuration > 0 && `${timeFormat(getCurrentTime)} / ${hoursTimeFormat(videoFullDuration)}`}
+                {videoFullDuration > 0 && `${timeFormat(getCurrentTime)} / ${timeFormat(videoFullDuration)}`}
             </VideoPlayingTime>
-            <ProgressBar />
+            <ProgressBar setIsplay={setIsplay} />
             <ControllersWrapper>
                 <PlayButton
                     onClick={playOrPause}
                     src={isPlay ? pauseButton : playButton}
                     alt={"play_pause_button"}
+                    id={"play_pause_button"}
                 />
                 <NextButton src={nextButton} alt={"next_button"} />
                 <VolumeWrapper>
@@ -51,6 +89,12 @@ export function VideoFooter(props: VideoFooterT) {
                     />
                     <VolumeProgress isVolumeMuted={isVolumeMuted} />
                 </VolumeWrapper>
+                <FullView
+                    id={"fullScreenView"}
+                    src={fullScreen}
+                    alt={"full_view"}
+                    onClick={fullScreenHandler}
+                />
             </ControllersWrapper>
         </VideoFooterWrapper>
     );
@@ -59,7 +103,6 @@ export function VideoFooter(props: VideoFooterT) {
 // styles
 
 const VideoFooterWrapper = styled.div`
-    background-color: black;
     position: absolute;
     bottom: 0px;
     width: 100%;
@@ -91,11 +134,18 @@ const VolumeWrapper = styled.div`
     position: absolute;
     left: 72px;
     padding: 6px;
-    bottom: 8px;
-    `;
-    const VolumeButton = styled.img`
+    bottom: 10px;
+`;
+const VolumeButton = styled.img`
     position: absolute;
     width: 16px;
     left: 0px;
+    cursor: pointer;
+`;
+const FullView = styled.img`
+    position: absolute;
+    right: 11px;
+    width: 15px;
+    bottom: 14px;
     cursor: pointer;
 `;
